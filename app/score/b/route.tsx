@@ -6,9 +6,6 @@ export const runtime = 'edge'
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
 
-
-  console.log("hai ",searchParams.get('text'))
-  // console.log("sc ",searchParams.get('score'))
   const hasText = searchParams.has('text')
   const text = hasText ? searchParams.get('text') : ''
   let text2=text?.split('_')[0]

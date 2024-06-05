@@ -12,7 +12,6 @@ export async function GET(request: Request) {
 
   const hasText = searchParams.has('text')
   const text = hasText ? searchParams.get('text') : ''
-  console.log('tezt ra, ',text)
 
   const imageData = await fetch(
     new URL('./Color.png', import.meta.url)

@@ -6,17 +6,10 @@ export const runtime = 'edge'
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
 
-
-  // console.log("hai ",searchParams.get('text'))
-  // const hasText = searchParams.has('score')
-  // const text = hasText ? searchParams.get('score')?.slice(0, 100) : ''
-
-  console.log("hai ",searchParams.get('text'))
-  // console.log("sc ",searchParams.get('score'))
   const hasText = searchParams.has('text')
   const text = hasText ? searchParams.get('text') : ''
   let text2=text?.split('_')[0]
-let score2=text?.split('_')[1]
+ let score2=text?.split('_')[1]
 
   const hasScore = searchParams.has('score')
   const score = hasScore ? searchParams.get('score') : ''
