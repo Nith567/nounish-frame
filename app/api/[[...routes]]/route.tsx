@@ -94,8 +94,6 @@ app.frame('/', async(c) => {
     ]
   })
 })
-const recipientAddress = '0x8a0d290b2ee35efde47810ca8ff057e109e4190b';
-
 
 app.frame('/after1',async(c) => {
   
@@ -250,7 +248,7 @@ app.frame('/after4',async(c) => {
    }
 
   
-   if(currentQuestionIndex <5){
+   if(currentQuestionIndex <questions.length){
         //@ts-ignore
         const newSearchParams = new URLSearchParams({
           text: questions[currentQuestionIndex].question + `_${scores}`,
@@ -273,15 +271,14 @@ app.frame('/after4',async(c) => {
 }
 const { frameData } = c;
 const { fid } = frameData as unknown as { buttonIndex?: number; fid?: string };
-
 const wallets = message?.interactor.verified_accounts;
-wallets?.push('0x214118a2AE1E01f4107B0c8751d5f397742fB23F')
+// wallets?.push('0x214118a2AE1E01f4107B0c8751d5f397742fB23F')//dummy-wallet with noun NFT for demo
+
 //@ts-ignore
 const isHolder= await isHolderOfContracts(wallets, ['0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03', '0x4b10701Bfd7BFEdc47d50562b76b436fbB5BdB3B', '0x9C8216A60422dC117a0206611ED0A3E4925bFC17', '0xd9E49f550d0F605e3cCEE3167eC14ee7a9134DdB'])
 
-//@ts-ignore
 
-if(currentQuestionIndex==5 && isHolder){
+if(currentQuestionIndex==questions.length && isHolder){
 
   if (fid !== undefined) {
     saved(parseInt(fid));
