@@ -8,8 +8,9 @@ import { neynar } from 'frog/hubs'
 import { FrameRequest, getFrameHtmlResponse, getFrameMessage } from '@coinbase/onchainkit'
 import { erc20Abi, parseUnits } from 'viem';
 import { isHolderOfContracts } from '@/utils/query';
-import { saved,checkPlayed, removePlayed } from '@/lib/save';
+import { saved,checkPlayed, removePlayed,saveColor,checkColor } from '@/lib/save';
 import redis from '@/lib/redis';
+import { Calistoga } from 'next/font/google';
 
 const app = new Frog({
   basePath: '/api',
@@ -93,19 +94,43 @@ app.frame('/', async(c) => {
       <Button.Link href='https://warpcast.com/~/channel/outpaint'>Follow outpaint⌁</Button.Link>
     ]
   })
+
 })
 
+
 app.frame('/after1',async(c) => {
+     const address=c.frameData?.address;
+    const { frameData,verified} = c;
   
-    const { frameData } = c;
-    const { fid } = frameData as unknown as { buttonIndex?: number; fid?: string };
+    const { fid } = frameData || {}
     const body: FrameRequest = await c.req.json()
     const { isValid, message } = await getFrameMessage(body, {
       neynarApiKey: process.env.NEYNAR_API
     })
 
+
+
+    if(verified){ //verfied checks if the user is verified through hub or use isValid from frameValidationResponse
+      //@ts-ignore
+      let colorPlayed=await checkColor(parseInt(fid))//tracks fid with color directly checkout to ecommerce if color is already played make sure to add your api endpoint
+      
+   if(colorPlayed){
+    return c.res({
+      action: `/done/${colorPlayed}`,
+      image: `${process.env.NEXT_PUBLIC_SITE_URL}/Frame1.png`,//any add any error Image here
+      imageAspectRatio:"1:1",
+      headers:{
+        'Content-Type': 'image/png'
+      },
+      intents: [
+        <Button>Already played: checkout</Button>,
+      ]
+    })
+
+   }
     //@ts-ignore
-    removePlayed(fid)
+     removePlayed(fid)//this is to remove player in db while testing it helps to reset the game again while deploying make sure to remove so that each fid play only one time
+
         const channelNeedToFollow = "outpaint";
         const baseUrlNeynarV2 = 'https://api.neynar.com/v2/farcaster';
         const responseChannel = await fetch(`${baseUrlNeynarV2}/channel?id=${channelNeedToFollow}&viewer_fid=${fid}`, {
@@ -116,11 +141,10 @@ app.frame('/after1',async(c) => {
           },
         });
 
-
-    
         const channelData = (await responseChannel.json()).channel;
         const userFollowing = channelData.viewer_context.following;
         const neynarURL = `https://api.neynar.com/v2/farcaster/cast?identifier=${process.env.HASH}&type=hash`;
+  //HASH='0x59c8ca215a8220611829cd96e9018ea2ba34e3cc' selected a random cast hash, after deploying make sure to change it to your own hash
       
         const neynarResponse = await fetch(neynarURL, {
        
@@ -130,7 +154,7 @@ app.frame('/after1',async(c) => {
             'api_key': process.env.NEYNAR_API_KEY || '',
           },
         });
-      //HASH='0x59c8ca215a8220611829cd96e9018ea2ba34e3cc'
+    
         const data = await neynarResponse.json();
         const reactions = await data.cast.reactions;
         const hasRecasted = reactions.recasts.some(
@@ -164,14 +188,27 @@ else{
       ]
     })
   }
+}
+else{
+  return c.res({
+    action: '/',
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Invalid User
+      </div>
+    ),
+    intents: [<Button>Try Again 🔄</Button>],
+  })
+}
 })
 
 
 app.frame('/after3',async(c) => {
 
-  const { frameData } = c;
+  const { frameData,verified } = c;
   const { fid } = frameData as unknown as { buttonIndex?: number; fid?: string };
 
+  if(verified){
   //@ts-ignore
 let hasPlayed=await checkPlayed(parseInt(fid))
 
@@ -217,11 +254,27 @@ else {
         ]
       })
     }
+  }
+  else{
+
+    return c.res({
+      action: '/after3',
+      image: `${process.env.NEXT_PUBLIC_SITE_URL}/Frame2.png`,
+      imageAspectRatio:"1:1",
+      headers:{
+        'Content-Type': 'image/png'
+      },
+      intents: [
+        <Button action='/after3'>START QUIZ</Button>,
+      ]
+    })
+  }
     })
 
 
 app.frame('/after4',async(c) => {
-
+    const {verified} = c;
+    if(verified){
   const body: FrameRequest = await c.req.json()
   const { isValid, message } = await getFrameMessage(body, {
     neynarApiKey: process.env.NEYNAR_API
@@ -272,7 +325,7 @@ app.frame('/after4',async(c) => {
 const { frameData } = c;
 const { fid } = frameData as unknown as { buttonIndex?: number; fid?: string };
 const wallets = message?.interactor.verified_accounts;
-// wallets?.push('0x214118a2AE1E01f4107B0c8751d5f397742fB23F')//dummy-wallet with noun NFT for demo
+wallets?.push('0x214118a2AE1E01f4107B0c8751d5f397742fB23F')//dummy-wallet with noun NFT for demo
 
 //@ts-ignore
 const isHolder= await isHolderOfContracts(wallets, ['0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03', '0x4b10701Bfd7BFEdc47d50562b76b436fbB5BdB3B', '0x9C8216A60422dC117a0206611ED0A3E4925bFC17', '0xd9E49f550d0F605e3cCEE3167eC14ee7a9134DdB'])
@@ -297,7 +350,7 @@ if(currentQuestionIndex==questions.length && isHolder){
       'Content-Type': 'image/png'
     },
     intents: [
-      <Button.Link href='https://warpcast.com/~/channel/outpaint'>mint lilnoun</Button.Link>,
+      <Button.Link href='https://opensea.io/collection/lil-nouns'>mint lilnoun</Button.Link>,
       <Button action='/color'>check your color</Button>,
       <Button action='/after3'>play again</Button>
     ]
@@ -326,25 +379,51 @@ else{
       'Content-Type': 'image/png'
     },
     intents: [
-      <Button.Link href='https://warpcast.com/~/channel/outpaint'>mint lilnoun</Button.Link>,
+      <Button.Link href='https://opensea.io/collection/lil-nouns'>mint lilnoun</Button.Link>,
     ]
   })
 }
 
 }
+else{
+
+
+  return c.res({
+    action: '/after3',
+    image: `${process.env.NEXT_PUBLIC_SITE_URL}/Frame2.png`,
+    imageAspectRatio:"1:1",
+    headers:{
+      'Content-Type': 'image/png'
+    },
+    intents: [
+      <Button action='/after3'>START QUIZ</Button>,
+    ]
+  })
+}
+}
 )
 
 app.frame('/color',async(c) => {
-    //@ts-ignore
-  let color= points_to_url[scores].split("/")[3]
-    //@ts-ignore
-    console.log('points ranger ', points_to_url[scores])
-    //@ts-ignore
+  const {verified,frameData} = c;
+if(verified){
 
-    const newSearchParams = new URLSearchParams({
-      text: `${color}`,
-    })
 
+  //@ts-ignore
+  let color = points_to_url[scores].split("/")[3];
+  //@ts-ignore
+  console.log('points ranger ', points_to_url[scores]);
+  //@ts-ignore
+
+  const fid = frameData?.fid;
+  if (fid !== undefined) {
+    saveColor(fid, color);
+  } else {
+    console.error('fid is undefined');
+  }
+
+  const newSearchParams = new URLSearchParams({
+    text: `${color}`,
+  });
     return c.res({
       action:`/done/${color}`,
       image: `${process.env.NEXT_PUBLIC_SITE_URL}/score/c?${newSearchParams}`,
@@ -353,15 +432,30 @@ app.frame('/color',async(c) => {
         'Content-Type': 'image/png'
       },
       intents: [
-       <Button.Link href='https://warpcast.com/~/channel/outpaint'>mint any noun</Button.Link>,
+       <Button.Link href='https://opensea.io/collection/lil-nouns'>mint any noun</Button.Link>,
        <Button>grab your {color}</Button>,
-       <Button.Link href='https://outpaint.io/'>Share</Button.Link>,
+       <Button.Link href='https://warpcast.com/~/channel/outpaint'>Share</Button.Link>,
       ]
     })
+  }
+  else{
+
+    return c.res({
+      action: '/after3',
+      image: `${process.env.NEXT_PUBLIC_SITE_URL}/Frame2.png`,
+      imageAspectRatio:"1:1",
+      headers:{
+        'Content-Type': 'image/png'
+      },
+      intents: [
+        <Button action='/after3'>START QUIZ</Button>,
+      ]
+    })
+  }
 })
 
 app.frame('/done/:color', async(c) => {
-
+//add necesary changes here to your custom logic, send the color to the end point
   const color= c.req.param('color')
   try {
     // const response = await axios.post('/ecom-end-point', {
@@ -386,7 +480,7 @@ app.frame('/done/:color', async(c) => {
         ]
       })
 } catch (error) {
-
+//c.error({ message: "error " });
   return c.res({
     action: '/',
     image: `${process.env.NEXT_PUBLIC_SITE_URL}/Frame1.png`,//any add any error Image here
