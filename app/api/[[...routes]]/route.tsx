@@ -117,7 +117,7 @@ app.frame('/after1',async(c) => {
    if(colorPlayed){
     return c.res({
       action: `/done/${colorPlayed}`,
-      image: `${process.env.NEXT_PUBLIC_SITE_URL}/Frame1.png`,//add convinient image here
+      image: `${process.env.NEXT_PUBLIC_SITE_URL}/Frame1.png`,//add convinient image here those who got color can directly checkout
       imageAspectRatio:"1:1",
       headers:{
         'Content-Type': 'image/png'
