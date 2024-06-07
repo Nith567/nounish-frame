@@ -117,7 +117,7 @@ app.frame('/after1',async(c) => {
    if(colorPlayed){
     return c.res({
       action: `/done/${colorPlayed}`,
-      image: `${process.env.NEXT_PUBLIC_SITE_URL}/Frame1.png`,//any add any error Image here
+      image: `${process.env.NEXT_PUBLIC_SITE_URL}/Frame1.png`,//add convinient image here
       imageAspectRatio:"1:1",
       headers:{
         'Content-Type': 'image/png'
@@ -325,7 +325,7 @@ app.frame('/after4',async(c) => {
 const { frameData } = c;
 const { fid } = frameData as unknown as { buttonIndex?: number; fid?: string };
 const wallets = message?.interactor.verified_accounts;
-wallets?.push('0x214118a2AE1E01f4107B0c8751d5f397742fB23F')//dummy-wallet with noun NFT for demo
+//wallets?.push('0x214118a2AE1E01f4107B0c8751d5f397742fB23F') //Added dummy-address having noun NFT for demo
 
 //@ts-ignore
 const isHolder= await isHolderOfContracts(wallets, ['0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03', '0x4b10701Bfd7BFEdc47d50562b76b436fbB5BdB3B', '0x9C8216A60422dC117a0206611ED0A3E4925bFC17', '0xd9E49f550d0F605e3cCEE3167eC14ee7a9134DdB'])
@@ -467,6 +467,7 @@ app.frame('/done/:color', async(c) => {
         }, 2000);
         const newSearchParams = new URLSearchParams({
           text: 'Checkout Ecommerce'
+
         })
 
     return c.res({
